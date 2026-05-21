@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WinFIS Track Viewer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="map-area" aria-label="Aircraft track relative to fixed station and altitude">
+        <header class="appbar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <div>
+              <strong>WinFIS TACAN</strong>
+              <span>Track dashboard</span>
+            </div>
+          </div>
+          <nav class="app-tabs" aria-label="Viewer sections">
+            <span class="active">Dashboard</span>
+            <span>Track</span>
+            <span>Report</span>
+          </nav>
+          <div class="operator">
+            <span class="status-dot"></span>
+            <span>UBL Station</span>
+          </div>
+        </header>
+
+        <section class="stage" aria-label="Map canvas">
+          <canvas id="track2d" width="1200" height="760"></canvas>
+
+          <div class="hud route-card">
+            <span class="label">Active file</span>
+            <strong id="trackName">PUBLIC DEMO</strong>
+            <small>Relative to UBL TACAN / VOR</small>
+          </div>
+
+          <div class="hud station-card">
+            <span class="label">Station</span>
+            <strong>UBL TACAN</strong>
+            <small>North-up reference 360</small>
+          </div>
+
+          <div class="metric-stack" aria-label="Track highlights">
+            <div class="metric-card fuel-card">
+              <span class="metric-icon">R</span>
+              <strong>Radial</strong>
+              <small>Live TACAN bearing</small>
+            </div>
+            <div class="metric-card load-card">
+              <span class="label">Altitude profile</span>
+              <strong>2D / 3D</strong>
+              <small>Drag map to inspect height</small>
+            </div>
+          </div>
+
+        </section>
+      </section>
+
+      <aside class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="label">Mission control</span>
+            <h1>TACAN Check</h1>
+          </div>
+          <span class="pill">Mark 1</span>
+        </div>
+
+        <section class="control-card primary-card">
+          <label class="control-row">
+            <span>WinFIS file</span>
+            <select id="fileSelect"></select>
+          </label>
+
+          <div class="source-status" id="sourceStatus">Source: decoded</div>
+
+          <div class="sample-head">
+            <span class="label">Sample</span>
+            <strong id="sampleNumber">-</strong>
+          </div>
+
+          <input id="sampleSlider" type="range" min="1" max="1" value="1" />
+
+          <div class="controls">
+            <button id="playPause" type="button">Play</button>
+            <button id="eventBtn" type="button">Pilot Event</button>
+          </div>
+        </section>
+
+        <section class="control-card">
+          <div class="speed-grid" aria-label="Playback speed">
+            <button id="speedDown" type="button">Slower</button>
+            <strong id="speedLabel">1x</strong>
+            <button id="speedUp" type="button">Faster</button>
+          </div>
+
+          <div class="event-status" id="eventStatus">Pilot Event 0 / 0</div>
+        </section>
+
+        <section class="control-card">
+          <div class="mode-grid" aria-label="View mode">
+            <button class="mode active" type="button" data-view="3d">3D</button>
+            <button class="mode" type="button" data-view="2d">2D</button>
+            <button class="mode" type="button" data-camera="top">Top</button>
+            <button class="mode" type="button" data-camera="side">Side</button>
+          </div>
+
+          <label class="control-row">
+            <span>View angle</span>
+            <input id="angleSlider" type="range" min="-180" max="180" value="-32" />
+          </label>
+
+          <label class="control-row">
+            <span>Tilt</span>
+            <input id="tiltSlider" type="range" min="15" max="78" value="58" />
+          </label>
+
+          <div class="zoom-grid" aria-label="Map zoom">
+            <button id="zoomOut" type="button">Zoom -</button>
+            <button id="zoomReset" type="button">Reset</button>
+            <button id="zoomIn" type="button">Zoom +</button>
+          </div>
+
+          <button id="northUp" type="button">North Up</button>
+        </section>
+
+        <section class="control-card">
+          <label class="control-row">
+            <span id="altScaleLabel">Altitude scale</span>
+            <input id="altSlider" type="range" min="1" max="25" value="10" />
+          </label>
+
+          <label class="control-row">
+            <span>Report range</span>
+            <select id="reportRange"></select>
+          </label>
+
+          <pre class="report-box" id="reportBox"></pre>
+        </section>
+
+        <section class="control-card readout-card">
+          <div class="section-title">
+            <span class="label">Live sample data</span>
+            <span>WinFIS</span>
+          </div>
+          <dl class="readout" id="readout"></dl>
+        </section>
+      </aside>
+    </main>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
