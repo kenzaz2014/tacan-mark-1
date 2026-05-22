@@ -665,7 +665,9 @@ function loadTrack(index) {
   fileSelect.value = String(index);
   trackName.textContent = data.title;
   updateSourceStatus();
+  sampleSlider.min = "0";
   sampleSlider.max = String(points.length - 1);
+  sampleSlider.value = "0";
   updateReportRangeOptions();
   const eventSample = data.note?.pilot_events?.[0]?.sample;
   if (eventSample) currentEventIndex = 0;
@@ -702,7 +704,9 @@ function init() {
     }
   });
   trackName.textContent = data.title;
+  sampleSlider.min = "0";
   sampleSlider.max = String(points.length - 1);
+  sampleSlider.value = "0";
   eventBtn.addEventListener("click", goToNextPilotEvent);
   playPause.addEventListener("click", togglePlay);
   speedDown.addEventListener("click", () => setPlaybackSpeed(speedIndex - 1));
