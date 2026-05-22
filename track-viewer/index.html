@@ -3,14 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>WinFIS Track Viewer</title>
+    <meta
+      name="description"
+      content="Public-safe TACAN track viewer with 2D and 3D map controls, playback, pilot-event navigation, and redacted demo data."
+    />
+    <title>TACAN Mark 1 Public Viewer</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="shell">
+    <main class="shell" aria-label="TACAN Mark 1 public viewer">
       <section class="map-area" aria-label="Aircraft track relative to fixed station and altitude">
         <header class="appbar">
-          <div class="brand">
+          <div class="brand" aria-label="Application identity">
             <span class="brand-mark" aria-hidden="true"></span>
             <div>
               <strong>WinFIS TACAN</strong>
@@ -29,7 +33,12 @@
         </header>
 
         <section class="stage" aria-label="Map canvas">
-          <canvas id="track2d" width="1200" height="760"></canvas>
+          <canvas
+            id="track2d"
+            width="1200"
+            height="760"
+            aria-label="Aircraft track map"
+          ></canvas>
 
           <div class="hud route-card">
             <span class="label">Active file</span>
@@ -55,11 +64,10 @@
               <small>Drag map to inspect height</small>
             </div>
           </div>
-
         </section>
       </section>
 
-      <aside class="panel">
+      <aside class="panel" aria-label="Viewer controls">
         <div class="panel-head">
           <div>
             <span class="label">Mission control</span>
@@ -69,7 +77,7 @@
         </div>
 
         <section class="control-card primary-card">
-          <label class="control-row">
+          <label class="control-row" for="fileSelect">
             <span>WinFIS file</span>
             <select id="fileSelect"></select>
           </label>
@@ -81,7 +89,14 @@
             <strong id="sampleNumber">-</strong>
           </div>
 
-          <input id="sampleSlider" type="range" min="0" max="1" value="0" />
+          <input
+            id="sampleSlider"
+            type="range"
+            min="0"
+            max="1"
+            value="0"
+            aria-label="Sample position"
+          />
 
           <div class="controls">
             <button id="playPause" type="button">Play</button>
@@ -100,19 +115,19 @@
         </section>
 
         <section class="control-card">
-          <div class="mode-grid" aria-label="View mode">
+          <div class="mode-grid" aria-label="View mode" role="group">
             <button class="mode active" type="button" data-view="3d">3D</button>
             <button class="mode" type="button" data-view="2d">2D</button>
             <button class="mode" type="button" data-camera="top">Top</button>
             <button class="mode" type="button" data-camera="side">Side</button>
           </div>
 
-          <label class="control-row">
+          <label class="control-row" for="angleSlider">
             <span>View angle</span>
             <input id="angleSlider" type="range" min="-180" max="180" value="-32" />
           </label>
 
-          <label class="control-row">
+          <label class="control-row" for="tiltSlider">
             <span>Tilt</span>
             <input id="tiltSlider" type="range" min="15" max="78" value="58" />
           </label>
@@ -127,17 +142,17 @@
         </section>
 
         <section class="control-card">
-          <label class="control-row">
+          <label class="control-row" for="altSlider">
             <span id="altScaleLabel">Altitude scale</span>
             <input id="altSlider" type="range" min="1" max="25" value="10" />
           </label>
 
-          <label class="control-row">
+          <label class="control-row" for="reportRange">
             <span>Report range</span>
             <select id="reportRange"></select>
           </label>
 
-          <pre class="report-box" id="reportBox"></pre>
+          <pre class="report-box" id="reportBox" aria-live="polite"></pre>
         </section>
 
         <section class="control-card readout-card">
@@ -145,7 +160,7 @@
             <span class="label">Live sample data</span>
             <span>WinFIS</span>
           </div>
-          <dl class="readout" id="readout"></dl>
+          <dl class="readout" id="readout" aria-live="polite"></dl>
         </section>
       </aside>
     </main>
