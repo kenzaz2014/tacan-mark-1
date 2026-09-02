@@ -1,0 +1,43 @@
+name: Validate TACAN Track Viewer
+
+on:
+  push:
+    paths:
+      - "sites/tacan-track-viewer/**"
+      - ".github/workflows/validate.yml"
+  pull_request:
+    paths:
+      - "sites/tacan-track-viewer/**"
+      - ".github/workflows/validate.yml"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: sites/tacan-track-viewer
+
+jobs:
+  validate:
+    name: Lint and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: sites/tacan-track-viewer/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
