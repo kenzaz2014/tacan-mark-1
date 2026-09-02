@@ -13,10 +13,6 @@ on:
 permissions:
   contents: read
 
-defaults:
-  run:
-    working-directory: sites/tacan-track-viewer
-
 jobs:
   validate:
     name: Lint and build
@@ -34,10 +30,13 @@ jobs:
           cache-dependency-path: sites/tacan-track-viewer/package-lock.json
 
       - name: Install dependencies
+        working-directory: sites/tacan-track-viewer
         run: npm ci
 
       - name: Lint
+        working-directory: sites/tacan-track-viewer
         run: npm run lint
 
       - name: Build
+        working-directory: sites/tacan-track-viewer
         run: npm run build
