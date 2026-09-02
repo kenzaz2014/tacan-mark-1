@@ -6,7 +6,7 @@ This repository contains the public-facing TACAN viewer workbench maintained by 
 
 ## Live application
 
-The current validated application is published as a private Sites deployment:
+The current application is published as an access-controlled Sites deployment:
 
 **[Open TACAN Track Viewer](https://tacan-track-viewer.kenzaz2014.chatgpt.site)**
 
@@ -20,10 +20,10 @@ Access is intentionally restricted to the owner. The GitHub repository is the so
 
 ## Engineering principles
 
-- **Local-first processing:** user-selected recordings and exports are handled in the browser.
+- **Local-first processing:** supported user-selected files are processed in browser memory and are not uploaded by the application.
 - **Public-safe by default:** operational files, raw samples, chart packages, screenshots with real values, credentials, and internal notes are excluded.
 - **Evidence over inference:** the viewer exposes source-derived values and validation context rather than inventing missing metadata.
-- **Clear safety boundary:** offline-generated views are for test and analysis use only. They are not UFP-UI, FMS, operational, or flight-check acceptance.
+- **Clear safety boundary:** offline-generated views are for test and analysis use only. They must not be treated as UFP-UI, FMS, operational, flight-check, or acceptance outputs.
 
 ## Current application capabilities
 
@@ -33,7 +33,7 @@ Access is intentionally restricted to the owner. The GitHub repository is the so
 - Inspect routes in 2D and 3D with playback and pilot-event navigation.
 - Calibrate a chart against a reference station and DME distance.
 - Keep calibration state local to the browser and bound to the selected chart fingerprint.
-- Enforce file-size, parser, rendering, and browser-security limits.
+- Enforce file-size caps, parser validation, rendering limits, and restrictive response-security headers.
 
 ## Run the current application locally
 

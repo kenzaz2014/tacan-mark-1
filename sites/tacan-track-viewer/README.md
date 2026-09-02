@@ -8,9 +8,9 @@
 
 ## Overview
 
-TACAN Track Viewer is a local-file analysis surface for WinFIS-derived flight-track data. It lets an analyst load a recording and its matching export, validate the relationship between the two, and inspect the result spatially without uploading source files to a server.
+TACAN Track Viewer is a local-file analysis surface for WinFIS-derived flight-track data. It lets an analyst load a recording and its matching export, validate the relationship between the two, and inspect the result spatially. Supported files are processed in browser memory; the application does not upload them to its server.
 
-The production Site is owner-only. This repository contains only the application source and public-safe documentation; operational recordings, raw samples, chart packages, screenshots, and internal validation material are intentionally excluded.
+The production Site is access-controlled. This repository contains only the application source and public-safe documentation; operational recordings, raw samples, chart packages, screenshots, and internal validation material are intentionally excluded.
 
 ## What it does
 
@@ -20,7 +20,7 @@ The production Site is owner-only. This repository contains only the application
 - Renders the route in 2D and 3D with playback, pilot-event navigation, and view presets.
 - Calibrates a chart against a reference station and DME distance.
 - Keeps calibration state in the browser, keyed to the selected chart fingerprint.
-- Applies file-size, parser, rendering, and browser-security limits before analysis.
+- Applies file-size caps, parser validation, rendering limits, and restrictive response-security headers before analysis.
 
 ## Privacy and safety boundaries
 
@@ -28,7 +28,7 @@ This project is designed for test and analysis workflows:
 
 - Source files are read in memory in the browser and are not embedded in the application.
 - No operational track data or real validation evidence is part of the public repository.
-- Offline-generated views are not UFP-UI, FMS, operational, or flight-check acceptance.
+- Offline-generated views must not be treated as UFP-UI, FMS, operational, flight-check, or acceptance outputs.
 - Never commit recordings, spreadsheets, raw WinFIS exports, chart PDFs, screenshots containing real values, credentials, or local environment files.
 
 ## Technology
