@@ -69,7 +69,7 @@ components/ui/       Reusable interface primitives
 hooks/               Small React hooks
 lib/                 Decoder, validation, security, and utility modules
 public/              Browser assets, including the PDF.js worker
-.openai/hosting.json Local Sites project metadata (not published here)
+.openai/hosting.json Local Sites project metadata; credentials are never stored
 ```
 
 ## Deployment
@@ -78,7 +78,7 @@ The validated application is published as a private Sites deployment:
 
 <https://tacan-track-viewer.kenzaz2014.chatgpt.site>
 
-The public GitHub repository is the source-facing home for the project. Deployment credentials and private Sites metadata are never stored in Git history.
+The public GitHub repository is the source-facing home for the project. The checked-in Sites metadata contains no credentials; deployment tokens and private runtime state are never stored in Git history.
 
 ## Status
 
