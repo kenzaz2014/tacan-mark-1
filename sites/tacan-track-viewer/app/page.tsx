@@ -438,7 +438,219 @@ function createChartGroundCanvas(source: HTMLCanvasElement) {
         pixels[index + 2] = 0;
       } else {
         pixels[index] = 0;
-    oor(width * dpr);
+        pixels[index + 1] = 0;
+        pixels[index + 2] = 0;
+      }
+    }
+    context.putImageData(imageData, 0, 0);
+  } catch {
+    return source;
+  }
+  return groundCanvas;
+}
+
+function provisionalChartCalibration(
+  preview: PdfPreview,
+  bounds: SceneBounds,
+): Calibration {
+  const sceneSpanNm = Math.max(bounds.maxRadius * 2 + 12, 12);
+  return {
+    station: { x: preview.width / 2, y: preview.height / 2 },
+    pxPerNm: Math.min(preview.width, preview.height) / sceneSpanNm,
+  };
+}
+
+function drawChartPlane(
+  ctx: CanvasRenderingContext2D,
+  preview: PdfPreview,
+  calibration: Calibration,
+  rotation: number,
+  opacity: number,
+  project: ProjectPoint,
+  groundOnly = false,
+) {
+  const topLeft = project(
+    chartPixelToGround(calibration, 0, 0, rotation),
+    true,
+  );
+  const topRight = project(
+    chartPixelToGround(calibration, preview.width, 0, rotation),
+    true,
+  );
+  const bottomLeft = project(
+    chartPixelToGround(calibration, 0, preview.height, rotation),
+    true,
+  );
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.translate(topLeft.x, topLeft.y);
+  ctx.transform(
+    (topRight.x - topLeft.x) / preview.width,
+    (topRight.y - topLeft.y) / preview.width,
+    (bottomLeft.x - topLeft.x) / preview.height,
+    (bottomLeft.y - topLeft.y) / preview.height,
+    0,
+    0,
+  );
+  ctx.drawImage(
+    groundOnly ? preview.groundCanvas : preview.canvas,
+    0,
+    0,
+    preview.width,
+    preview.height,
+  );
+  ctx.restore();
+}
+
+function drawGrid3d(
+  ctx: CanvasRenderingContext2D,
+  bounds: SceneBounds,
+  project: ProjectPoint,
+) {
+  const radius = bounds.maxRadius + 6;
+  const lines = 16;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(188, 198, 207, 0.72)';
+  ctx.lineWidth = 1;
+  for (let index = 0; index <= lines; index += 1) {
+    const coordinate = -radius + (radius * 2 * index) / lines;
+    const verticalStart = project(
+      { eastNm: coordinate, northNm: -radius, altitudeFt: 0 },
+      true,
+    );
+    const verticalEnd = project(
+      { eastNm: coordinate, northNm: radius, altitudeFt: 0 },
+      true,
+    );
+    const horizontalStart = project(
+      { eastNm: -radius, northNm: coordinate, altitudeFt: 0 },
+      true,
+    );
+    const horizontalEnd = project(
+      { eastNm: radius, northNm: coordinate, altitudeFt: 0 },
+      true,
+    );
+    ctx.beginPath();
+    ctx.moveTo(verticalStart.x, verticalStart.y);
+    ctx.lineTo(verticalEnd.x, verticalEnd.y);
+    ctx.moveTo(horizontalStart.x, horizontalStart.y);
+    ctx.lineTo(horizontalEnd.x, horizontalEnd.y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawMapDirections(
+  ctx: CanvasRenderingContext2D,
+  bounds: SceneBounds,
+  project: ProjectPoint,
+) {
+  const radius = Math.max(6, bounds.maxRadius * 0.8);
+  const origin = project({ eastNm: 0, northNm: 0, altitudeFt: 0 }, true);
+  const directions = [
+    { label: 'N 360', eastNm: 0, northNm: radius, color: '#071827', width: 3 },
+    { label: '090', eastNm: radius, northNm: 0, color: '#23384a', width: 2 },
+    { label: '180', eastNm: 0, northNm: -radius, color: '#23384a', width: 2 },
+    { label: '270', eastNm: -radius, northNm: 0, color: '#23384a', width: 2 },
+  ];
+  directions.forEach((direction) => {
+    const end = project(
+      { eastNm: direction.eastNm, northNm: direction.northNm, altitudeFt: 0 },
+      true,
+    );
+    ctx.save();
+    ctx.strokeStyle = direction.color;
+    ctx.lineWidth = direction.width;
+    ctx.beginPath();
+    ctx.moveTo(origin.x, origin.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+    ctx.restore();
+    drawLabel(ctx, direction.label, end.x + 8, end.y - 7, direction.color);
+  });
+}
+
+function drawRadialCue(
+  ctx: CanvasRenderingContext2D,
+  current: DecodedSample,
+  project: ProjectPoint,
+) {
+  const station = project({ eastNm: 0, northNm: 0, altitudeFt: 0 }, true);
+  const aircraftGround = project(
+    { eastNm: current.eastNm, northNm: current.northNm, altitudeFt: 0 },
+    true,
+  );
+  ctx.save();
+  ctx.strokeStyle = 'rgba(217, 157, 31, 0.96)';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([7, 6]);
+  ctx.beginPath();
+  ctx.moveTo(station.x, station.y);
+  ctx.lineTo(aircraftGround.x, aircraftGround.y);
+  ctx.stroke();
+  ctx.restore();
+  drawLabel(
+    ctx,
+    `RDL ${formatDegrees(current.gpsBearingDeg)} / ${formatNumber(current.gpsRangeNm, 1)} NM`,
+    aircraftGround.x + 12,
+    aircraftGround.y + 18,
+    '#704900',
+  );
+}
+
+function drawAltitudeCue(
+  ctx: CanvasRenderingContext2D,
+  current: DecodedSample,
+  project: ProjectPoint,
+) {
+  const ground = project(
+    { eastNm: current.eastNm, northNm: current.northNm, altitudeFt: 0 },
+    true,
+  );
+  const aircraft = project(current);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(217, 157, 31, 0.92)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(ground.x, ground.y);
+  ctx.lineTo(aircraft.x, aircraft.y);
+  ctx.stroke();
+  ctx.restore();
+  drawLabel(
+    ctx,
+    `${formatNumber(current.altitudeFt, 0)} FT MSL`,
+    aircraft.x + 12,
+    aircraft.y - 11,
+    '#704900',
+  );
+}
+
+function drawScene(
+  canvas: HTMLCanvasElement,
+  samples: DecodedSample[],
+  bounds: SceneBounds,
+  currentIndex: number,
+  viewMode: ViewMode,
+  camera: Camera,
+  highlightRange: ReportHighlightRange,
+  chart: {
+    preview: PdfPreview | null;
+    active: Calibration | null;
+    editing: boolean;
+    pendingStation: ChartPoint | null;
+    pendingRing: ChartPoint | null;
+    activeHandle: CalibrationStep;
+    visible: boolean;
+    opacity: number;
+    rotation: number;
+  },
+) {
+  const rect = canvas.getBoundingClientRect();
+  const width = Math.max(520, rect.width || 520);
+  const height = Math.max(420, rect.height || 420);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const pixelWidth = Math.floor(width * dpr);
   const pixelHeight = Math.floor(height * dpr);
   if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
     canvas.width = pixelWidth;
@@ -683,7 +895,92 @@ function drawAircraftProjected(
 ) {
   const current = project(samples[currentIndex]);
   let dx = 0;
-  let dy = - return {
+  let dy = -1;
+  if (currentIndex < samples.length - 1) {
+    const next = project(samples[currentIndex + 1]);
+    dx = next.x - current.x;
+    dy = next.y - current.y;
+  } else if (currentIndex > 0) {
+    const previous = project(samples[currentIndex - 1]);
+    dx = current.x - previous.x;
+    dy = current.y - previous.y;
+  }
+  drawAircraft(ctx, current, Math.atan2(dy, dx) + Math.PI / 2, color);
+}
+
+function drawCalibrationMarkers(
+  ctx: CanvasRenderingContext2D,
+  preview: PdfPreview,
+  station: ChartPoint | null,
+  ring: ChartPoint | null,
+  activeHandle: CalibrationStep,
+  fit: ReturnType<typeof chartTransform>,
+) {
+  if (!fit) return;
+  const toView = (point: ChartPoint) => ({
+    x: fit.offsetX + point.x * fit.scale,
+    y: fit.offsetY + point.y * fit.scale,
+  });
+  ctx.save();
+  if (station) {
+    const point = toView(station);
+    ctx.fillStyle = 'rgba(208, 131, 31, 0.2)';
+    ctx.strokeStyle = activeHandle === 'station' ? '#8c3f12' : '#d0831f';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    drawLabel(ctx, 'DRAG STATION', point.x + 17, point.y + 4, '#8c3f12');
+  }
+  if (ring) {
+    const point = toView(ring);
+    ctx.fillStyle = 'rgba(36, 95, 122, 0.18)';
+    ctx.strokeStyle = activeHandle === 'ring' ? '#0f4d68' : '#245f7a';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    drawLabel(ctx, 'DRAG DME REFERENCE', point.x + 15, point.y + 4, '#0f4d68');
+    if (station) {
+      const origin = toView(station);
+      ctx.setLineDash([7, 6]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(origin.x, origin.y);
+      ctx.lineTo(point.x, point.y);
+      ctx.stroke();
+    }
+  }
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.fillRect(20, 18, 370, 38);
+  drawLabel(
+    ctx,
+    'CALIBRATION / DRAG BOTH MARKERS, THEN ENTER KNOWN DME',
+    32,
+    42,
+    '#1f2933',
+  );
+  drawLabel(
+    ctx,
+    `${preview.width} × ${preview.height} PDF pixels`,
+    20,
+    fit.offsetY + fit.drawHeight - 12,
+    '#64748b',
+  );
+  ctx.restore();
+}
+
+function reportStats(samples: DecodedSample[], key: keyof DecodedSample) {
+  const values = samples
+    .map((sample) => sample[key])
+    .filter(
+      (value): value is number =>
+        typeof value === 'number' && Number.isFinite(value),
+    );
+  if (!values.length) return null;
+  return {
     min: Math.min(...values),
     max: Math.max(...values),
     avg: values.reduce((sum, value) => sum + value, 0) / values.length,
@@ -1749,7 +2046,50 @@ function ViewerSurface({
                 <strong>{current.sample.toLocaleString()}</strong>
               </div>
               <Badge variant="outline">
-                {formatDegrees(current.gpsBearingDeg)}° /{' '}"
+                {formatDegrees(current.gpsBearingDeg)}° /{' '}
+                {formatNumber(current.gpsRangeNm, 1)} NM
+              </Badge>
+            </div>
+            <input
+              className="range-input"
+              type="range"
+              min={0}
+              max={Math.max(1, session.samples.length - 1)}
+              value={currentIndex}
+              onChange={(event) => setCurrentIndex(Number(event.target.value))}
+              aria-label="Track sample"
+              data-testid="sample-slider"
+            />
+            <div className="range-labels">
+              <span>1</span>
+              <span>{session.sampleCount.toLocaleString()}</span>
+            </div>
+            <div className="button-row">
+              <Button
+                onClick={() => setPlaying((value) => !value)}
+                data-testid="play-pause"
+              >
+                {playing ? <Pause size={15} /> : <Play size={15} />}
+                {playing ? 'Pause' : 'Play'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (!events.length) return;
+                  setPlaying(false);
+                  const next =
+                    events.find((event) => event.sample - 1 > currentIndex) ??
+                    events[0];
+                  setCurrentIndex(next.sample - 1);
+                }}
+                disabled={!events.length}
+              >
+                Pilot event
+              </Button>
+            </div>
+            <div className="speed-row">
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={() => setSpeedIndex((index) => Math.max(0, index - 1))}
               >
